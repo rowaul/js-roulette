@@ -10,4 +10,4 @@ Simple roulette wheel made using JS with HTML canvas elements.
 
 
 ### Live Demo
-![blear.co/roulette](https://blear.co/roulette/roulette.html)
+[blear.co/roulette](https://blear.co/roulette/roulette.html)
