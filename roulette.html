@@ -1,0 +1,161 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Art School Roulette</title>
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      canvas {
+        position: absolute;
+        top: 6%;
+        left: 50%;
+        -webkit-transform: translateX(-50%);
+        transform: translateX(-50%);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content" style="text-align: center">
+      <p id="winLose">Spin the wheel to test your luck!</p>
+      <div id="wrapper">
+        <canvas id="ball" style="z-index: 1"
+          >Sorry, your browser is not supported.</canvas
+        >
+        <canvas id="roulette" style="z-index: 0"></canvas>
+      </div>
+    </div>
+    <div id="hidden" style="display: none">
+      <img id="rltImg" src="roulette.svg" />
+    </div>
+  </body>
+  <script>
+    $(document).ready(function () {
+      // Setting up sound
+      var winSound = new Audio("horn.mp3");
+      var spinSound = new Audio("roulette.mp3");
+      var allAudio = [];
+      allAudio.push(winSound);
+      allAudio.push(spinSound);
+
+      // Canvas preparation for both ball and roulette.
+      if (document.documentElement.clientWidth > 800) vw = 650;
+      else vw = document.documentElement.clientWidth * 0.9;
+
+      const image = document.getElementById("rltImg");
+      const canvas = document.getElementById("roulette");
+      const ctx = canvas.getContext("2d");
+      canvas.width = vw + 4;
+      canvas.height = vw + 4;
+
+      const canvasb = document.getElementById("ball");
+      const ctxb = canvasb.getContext("2d");
+      canvasb.width = vw + 4;
+      canvasb.height = vw + 4;
+
+      // Maintains coordinates of ball as rotation occurs.
+      var ballX = 0;
+      var ballY = vw / -3.5;
+
+      // Draws both the wheel and ball on respective canvases
+      function drawWheel() {
+        ctx.drawImage(image, 0, 0, vw, vw);
+
+        ctxb.translate(vw / 2, vw / 2);
+        ctxb.beginPath();
+        ctxb.fillStyle = "white";
+        ctxb.arc(ballX, ballY, vw / 90, 0, 2 * Math.PI);
+        ctxb.fill();
+        ctxb.closePath();
+        ctxb.translate(-vw / 2, -vw / 2);
+      }
+
+      // Rotate the roulette wheel clockwise by "degrees"
+      // Rotate the ball counterclockwise by a semi-random number
+      function rotateWheel(degrees) {
+        ctx.translate(vw / 2, vw / 2);
+        ctx.rotate((degrees * Math.PI) / 180);
+        ctx.translate(-vw / 2, -vw / 2);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Manually rotate the ball so we can keep track of real coords
+        ballRotate = (-(Math.random() * degrees + 1) * Math.PI) / 180;
+        tmpX = ballX;
+        tmpY = ballY;
+        ballX = tmpX * Math.cos(ballRotate) - tmpY * Math.sin(ballRotate);
+        ballY = tmpY * Math.cos(ballRotate) + tmpX * Math.sin(ballRotate);
+
+        ctxb.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawWheel();
+      }
+
+      // Calls rotate function at desired interval
+      // Interval will slowly increase until the limit is reached
+      function speen(interval) {
+        if (interval > 180) {
+          winLose();
+        } else {
+          // Fewer spins at higher intervals. Feels more realistic.
+          speens = 0;
+          speenterval = setInterval(function () {
+            if (speens > 200 / interval) {
+              clearInterval(speenterval);
+              speen(interval * 1.3);
+            }
+            rotateWheel(5 / (interval / 10));
+            speens++;
+          }, interval);
+        }
+      }
+
+      // If the ball is on a space with a red value of 53, we have a winner.
+      // All other colors are for losers, clearly.
+      function winLose() {
+        spinSound.pause();
+
+        // Check color of ball coords on wheel canvas (from center)
+        color = ctx.getImageData(
+          ballX + canvas.width / 2,
+          ballY + canvas.height / 2,
+          1,
+          1
+        ).data[0];
+
+        if (color != 53) {
+          document.getElementById("winLose").innerHTML = "Loser... ";
+        } else {
+          document.getElementById("winLose").innerHTML = "Winner! ";
+          winSound.play();
+        }
+        console.log(color)
+      }
+
+      // iOS audio - https://curtisrobinson.medium.com/how-to-auto-play-audio-in-safari-with-javascript-21d50b0a2765
+      document.body.addEventListener(
+        "touchstart",
+        function () {
+          if (allAudio) {
+            for (let audio of allAudio) {
+              audio.play();
+              audio.pause();
+              audio.currentTime = 0;
+            }
+            allAudio = null;
+          }
+        },
+        false
+      );
+
+      // Set up canvas defaults and add click event listener.
+      drawWheel();
+      $("#ball").one("click", function () {
+        spinSound.play();
+        speen(Math.random() * 5 + 1);
+      });
+    });
+  </script>
+</html>
