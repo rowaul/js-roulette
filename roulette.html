@@ -29,11 +29,11 @@
       </div>
     </div>
     <div id="hidden" style="display: none">
-      <img id="rltImg" src="roulette.svg" />
+      <img id="rltImg" src="roulette.svg"/>
     </div>
   </body>
   <script>
-    $(document).ready(function () {
+    $(window).on("load", function () {
       // Setting up sound
       var winSound = new Audio("horn.mp3");
       var spinSound = new Audio("roulette.mp3");
@@ -42,8 +42,8 @@
       allAudio.push(spinSound);
 
       // Canvas preparation for both ball and roulette.
-      if (document.documentElement.clientWidth > 800) vw = 650;
-      else vw = document.documentElement.clientWidth * 0.9;
+      if (document.body.clientWidth > 800) vw = 650;
+      else vw = document.body.clientWidth * 0.9;
 
       const image = document.getElementById("rltImg");
       const canvas = document.getElementById("roulette");
@@ -131,7 +131,7 @@
           document.getElementById("winLose").innerHTML = "Winner! ";
           winSound.play();
         }
-        console.log(color)
+        console.log(color);
       }
 
       // iOS audio - https://curtisrobinson.medium.com/how-to-auto-play-audio-in-safari-with-javascript-21d50b0a2765
